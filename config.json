@@ -1,3 +1,4 @@
 {
-    "stock_market_data_path":".data/stock_market_data.csv"
+    "stock_market_data_path":".data/stock_market_data.csv",
+    "stock_symbol":"21STCENMGM"
 }

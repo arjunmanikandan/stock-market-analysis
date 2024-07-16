@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from visualize_data import visualize_stock_data
 import pandas as pd
 import json,os
@@ -12,9 +13,10 @@ def read_csv(config):
     return stock_data
 
 def main():
+    load_dotenv()
     config = read_json(os.getenv("CONFIG_PATH"))
     stock_data = read_csv(config)
-    visualize_stock_data(stock_data)
+    visualize_stock_data(stock_data,config)
 
 if __name__ == "__main__":
     main()

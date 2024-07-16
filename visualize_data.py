@@ -4,12 +4,12 @@ import pandas as pd
 #handles indicates how data is represented graphically(bars,piecharts,lines)
 #plt.legend() by default receives labels from primary x and y axes. 
 #To concatenate secondary y axis labels , entire list of labels from both axes should be passed
-def visualize_stock_data(stock_data):
+def visualize_stock_data(stock_data,config):
     stock_data['TIMESTAMP'] = pd.to_datetime(stock_data['TIMESTAMP'], format='%d-%b-%Y')
-    filtered_stock_data = stock_data.query("SYMBOLS == '1018GS2026'")
+    filtered_stock_data = stock_data.query("SYMBOLS == @config['stock_symbol']")
     stock_series = filtered_stock_data["SERIES"].values[0]
     filtered_stock_data = filtered_stock_data.sort_values(by='TIMESTAMP')
-    plt.title(f"(NSE INDIA) 1018GS2026 {stock_series} 23-24(JAN-JULY)")
+    plt.title(f"(NSE INDIA) {config['stock_symbol']} {stock_series} 23-24(JAN-JULY)")
     plt.xlabel("Date")
     plt.ylabel("Opening Price and Closing Price (₹)")
     plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["OPEN"], marker='o', linestyle='-', color="#0CC1F6",label="Opening Price")
@@ -22,5 +22,5 @@ def visualize_stock_data(stock_data):
     plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%d-%b-%Y'))
     plt.gcf().autofmt_xdate(rotation=45)
     plt.grid(True)
-    plt.legend(line_handles+bar_handle,line_labels+bar_label)
+    plt.legend(line_handles+bar_handle,line_labels+bar_label,loc="upper left")
     plt.show()
