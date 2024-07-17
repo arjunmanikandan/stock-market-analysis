@@ -1,4 +1,7 @@
 {
     "stock_market_data_path":".data/stock_market_data.csv",
-    "stock_symbol":"21STCENMGM"
+    "stock_symbol":"1018GS2026",
+    "start_time_stamp":"11-DEC-2023",
+    "end_time_stamp":"01-MAY-2024",
+    "scale":"daily"
 }
