@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from visualize_data import visualize_stock_data
+from visualize_data import filter_data
 import pandas as pd
 import json,os
 
@@ -16,7 +16,7 @@ def main():
     load_dotenv()
     config = read_json(os.getenv("CONFIG_PATH"))
     stock_data = read_csv(config)
-    visualize_stock_data(stock_data,config)
+    filter_data(stock_data,config)
 
 if __name__ == "__main__":
     main()
