@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
-from visualize_data import filter_data
+from filter_data import filter_data
+from visualize_data import visualize_data,plot_candle_bars
 import pandas as pd
 import json,os
 
@@ -16,7 +17,9 @@ def main():
     load_dotenv()
     config = read_json(os.getenv("CONFIG_PATH"))
     stock_data = read_csv(config)
-    filter_data(stock_data,config)
-
+    filtered_stock_data = filter_data(stock_data,config)
+    visualize_data(filtered_stock_data,config)
+    plot_candle_bars(filtered_stock_data,config)
+    
 if __name__ == "__main__":
     main()
