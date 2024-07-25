@@ -1,5 +1,5 @@
 {
-    "stock_market_data_path":".data/stock_market_data.csv",
+    "stock_market_data_path":".data/stocks.db",
     "stock_symbol":"1018GS2026",
     "start_time_stamp":"16-MAY-2023",
     "end_time_stamp":"22-JUN-2024",

@@ -1,4 +1,4 @@
-from matplotlib.patches import Patch
+import  matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 def plot_labels(filtered_stock_data,config):
@@ -18,7 +18,11 @@ def plot_candle_bars(filtered_stock_data,config):
     plt.bar(lowest_prices["TIMESTAMP"], lowest_prices['CLOSE'] - lowest_prices['OPEN'], width=2.5, bottom=lowest_prices['OPEN'], color="red")
     plt.bar(lowest_prices["TIMESTAMP"], lowest_prices['HIGH'] - lowest_prices['OPEN'], width=0.5, bottom=lowest_prices['OPEN'], color="red")
     plt.bar(lowest_prices["TIMESTAMP"], lowest_prices['LOW'] - lowest_prices['CLOSE'], width=0.5, bottom=lowest_prices['CLOSE'], color="red")
-    plt.xticks(rotation=45)
+    green_patch = mpatches.Patch(color='green', label='Closing Price > Opening Price')
+    red_patch = mpatches.Patch(color='red', label='Opening Price > Closing Price')
+    plt.legend(handles=[green_patch, red_patch])
+    plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%d-%b-%Y'))
+    plt.gcf().autofmt_xdate(rotation=45)
     plt.show()
 
 def visualize_data(filtered_stock_data,config):
