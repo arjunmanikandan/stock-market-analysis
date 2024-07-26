@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 def get_df_by_symbol(stock_data,config):
-    filtered_stock_data = stock_data.query("SYMBOLS == @config['stock_symbol']").copy()
+    filtered_stock_data = stock_data[stock_data["SYMBOLS"].isin(config['stock_symbols'])].copy()
     filtered_stock_data['TIMESTAMP'] = pd.to_datetime(stock_data['TIMESTAMP'], format='%d-%b-%Y')
     filtered_stock_data = filtered_stock_data[filtered_stock_data["TIMESTAMP"].between(config["start_time_stamp"],
     config["end_time_stamp"],inclusive="both")]

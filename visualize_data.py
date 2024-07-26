@@ -2,9 +2,9 @@ import  matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 def plot_labels(filtered_stock_data,config):
-    stock_series = filtered_stock_data["SERIES"].values[0]
+    stock_series = filtered_stock_data["SERIES"].unique()
     filtered_stock_data = filtered_stock_data.sort_values(by='TIMESTAMP')
-    plt.title(f"(NSE INDIA) {config['stock_symbol']} {stock_series} BETWEEN {config['start_time_stamp']} AND {config['end_time_stamp']} ({config['scale']})")
+    plt.title(f"(NSE INDIA) {config['stock_symbols']} {stock_series} BETWEEN {config['start_time_stamp']} AND {config['end_time_stamp']} ({config['scale']})")
     plt.xlabel("Date")
     plt.ylabel("Price(₹)")
 
@@ -27,10 +27,10 @@ def plot_candle_bars(filtered_stock_data,config):
 
 def visualize_data(filtered_stock_data,config):
     plot_labels(filtered_stock_data,config)
-    plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["HIGH"], marker='o', linestyle='-',color="#88F60C",label="Highest Price")
-    plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["LOW"], marker='o', linestyle='-',color="#0C2FF6",label="Lowest Price")
-    plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["CLOSE"], marker='o', linestyle='-',color="#F6AC0C",label="Closing Price")
-    plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["OPEN"], marker='o', linestyle='-', color="#0CC1F6",label="Opening Price")
+    plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["HIGH"],linestyle='-',color="#88F60C",label="Highest Price")
+    plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["LOW"],linestyle='-',color="#0C2FF6",label="Lowest Price")
+    plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["CLOSE"],linestyle='-',color="#F6AC0C",label="Closing Price")
+    plt.plot(filtered_stock_data["TIMESTAMP"], filtered_stock_data["OPEN"],linestyle='-', color="#0CC1F6",label="Opening Price")
     line_handles,line_labels = plt.gca().get_legend_handles_labels()
     secondary_y_axis = plt.gca().twinx()
     secondary_y_axis.bar(filtered_stock_data["TIMESTAMP"], filtered_stock_data["TOTTRDQTY"], color="red", width=0.3, label="Total Traded Quantity")

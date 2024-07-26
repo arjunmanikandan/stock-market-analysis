@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from filter_data import filter_data
 from visualize_data import visualize_data,plot_candle_bars
+from comparison import compare_multiple_symbols
 import pandas as pd
 import json,os,sqlite3
 
@@ -29,8 +30,7 @@ def main():
     stock_data = read_sqlite_db(config)
     stock_data = filter_inconsistent_data(stock_data)
     filtered_stock_data = filter_data(stock_data,config)
-    visualize_data(filtered_stock_data,config)
-    plot_candle_bars(filtered_stock_data,config)
-    
+    compare_multiple_symbols(filtered_stock_data,config)
+
 if __name__ == "__main__":
     main()
