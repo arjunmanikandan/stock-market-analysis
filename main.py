@@ -1,9 +1,12 @@
 from dotenv import load_dotenv
-from filter_data import filter_data
+from filter_data import filter_data,calc_profit
 from visualize_data import visualize_data,plot_candle_bars
 from comparison import compare_multiple_symbols
 import pandas as pd
 import json,os,sqlite3
+
+def display_df(profitable_stocks):
+    print(profitable_stocks)
 
 def read_json(json_file):
     with open(json_file,"r") as file:
@@ -30,7 +33,8 @@ def main():
     stock_data = read_sqlite_db(config)
     stock_data = filter_inconsistent_data(stock_data)
     filtered_stock_data = filter_data(stock_data,config)
-    compare_multiple_symbols(filtered_stock_data,config)
+    profitable_stocks = calc_profit(filtered_stock_data)
+    display_df(profitable_stocks)
 
 if __name__ == "__main__":
     main()

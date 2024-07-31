@@ -48,3 +48,11 @@ def filter_data(stock_data,config):
     filtered_stock_data = get_df_by_symbol(stock_data,config)
     stock_data_with_time_freq = scale_dict[time_freq](filtered_stock_data)
     return stock_data_with_time_freq
+
+#Stock Profitability for one stock , calculated using high and low
+def calc_profit(filtered_stock_data):
+    profitable_stocks = filtered_stock_data.groupby("SYMBOLS").agg({"HIGH":"first","LOW":"last","TIMESTAMP":["first","last"]})
+    profitable_stocks = profitable_stocks.reset_index().droplevel(axis=1,level=1)
+    profitable_stocks.columns = ["SYMBOLS","BuyingPrice","SellingPrice","Buying_Date","Selling_Date"]
+    profitable_stocks["PROFIT/LOSS_PERCENTAGE(%)"] = profitable_stocks.apply(lambda row: ((row["SellingPrice"]-row["BuyingPrice"])/row["BuyingPrice"])*100,axis=1)
+    return profitable_stocks
