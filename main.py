@@ -33,7 +33,7 @@ def main():
     stock_data = read_sqlite_db(config)
     stock_data = filter_inconsistent_data(stock_data)
     filtered_stock_data = filter_data(stock_data,config)
-    profitable_stocks = calc_profit(filtered_stock_data)
+    profitable_stocks = calc_profit(filtered_stock_data,config)
     display_df(profitable_stocks)
 
 if __name__ == "__main__":

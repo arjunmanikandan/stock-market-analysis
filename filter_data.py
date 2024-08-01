@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 
 def get_df_by_symbol(stock_data,config):
     filtered_stock_data = stock_data[stock_data["SYMBOLS"].isin(config['stock_symbols'])].copy()
@@ -49,10 +50,30 @@ def filter_data(stock_data,config):
     stock_data_with_time_freq = scale_dict[time_freq](filtered_stock_data)
     return stock_data_with_time_freq
 
+def profit_attributes(row,config):
+    stocks_purchasable = math.floor(config["amt_invested"]/row["BUYING_PRICE_PER_STOCK"])
+    total_buying_price = stocks_purchasable*row["BUYING_PRICE_PER_STOCK"]
+    total_selling_price = stocks_purchasable*row["SELLING_PRICE_PER_STOCK"]
+    net_balance = (total_buying_price+total_selling_price)
+    profit_or_loss = total_selling_price-total_buying_price
+    columns = pd.Series({
+        "AMT_INVESTED":config["amt_invested"],
+        "STOCKS_PURCHASABLE": stocks_purchasable,
+        "TOTAL_BUYING_PRICE": total_buying_price,
+        "TOTAL_SELLING_PRICE": total_selling_price,
+        "NET_BALANCE":net_balance,
+        "PROFIT/LOSS(₹)":profit_or_loss,
+        "ACCOUNT_BALANCE":total_selling_price+ (config["amt_invested"]-total_buying_price)
+    })
+    return columns
+
 #Stock Profitability for one stock , calculated using high and low
-def calc_profit(filtered_stock_data):
+def calc_profit(filtered_stock_data,config):
     profitable_stocks = filtered_stock_data.groupby("SYMBOLS").agg({"HIGH":"first","LOW":"last","TIMESTAMP":["first","last"]})
     profitable_stocks = profitable_stocks.reset_index().droplevel(axis=1,level=1)
-    profitable_stocks.columns = ["SYMBOLS","BuyingPrice","SellingPrice","Buying_Date","Selling_Date"]
-    profitable_stocks["PROFIT/LOSS_PERCENTAGE(%)"] = profitable_stocks.apply(lambda row: ((row["SellingPrice"]-row["BuyingPrice"])/row["BuyingPrice"])*100,axis=1)
+    profitable_stocks.columns = ["SYMBOLS","BUYING_PRICE_PER_STOCK","SELLING_PRICE_PER_STOCK","BUYING_DATE","SELLING_DATE"]
+    profitable_stocks = profitable_stocks.query("BUYING_PRICE_PER_STOCK < @config['amt_invested']").copy()
+    profitable_stocks[["AMT_INVESTED","STOCKS_PURCHASABLE","TOTAL_BUYING_PRICE","TOTAL_SELLING_PRICE","NET_BALANCE","PROFIT/LOSS(₹)",
+                       "ACCOUNT_BALANCE"]] = profitable_stocks.apply(profit_attributes,args=(config,),axis=1)
+    profitable_stocks = profitable_stocks.sort_values(by="ACCOUNT_BALANCE",ascending=False).reset_index(drop=True)
     return profitable_stocks

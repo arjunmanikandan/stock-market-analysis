@@ -3,5 +3,6 @@
     "stock_symbols":["1018GS2026","ASHOKLEY","ZUARI","ZODIAC","ZENTEC"],
     "start_time_stamp":"16-MAY-2023",
     "end_time_stamp":"22-JUN-2024",
-    "scale":"daily"
+    "scale":"daily",
+    "amt_invested":2000
 }
