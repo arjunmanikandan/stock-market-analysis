@@ -3,7 +3,8 @@ import numpy as np
 import math
 
 def get_df_by_symbol(stock_data,config):
-    filtered_stock_data = stock_data[stock_data["SYMBOLS"].isin(config['stock_symbols'])].copy()
+    filtered_stock_data = stock_data[stock_data["SYMBOLS"].isin(config['symbols_or_industries']) | 
+    stock_data["INDUSTRY"].isin(config['symbols_or_industries']) | stock_data["SYMBOL_INDUSTRY"].isin(config['symbols_or_industries']) ].copy()
     filtered_stock_data['TIMESTAMP'] = pd.to_datetime(stock_data['TIMESTAMP'], format='%d-%b-%Y')
     filtered_stock_data = filtered_stock_data[filtered_stock_data["TIMESTAMP"].between(config["start_time_stamp"],
     config["end_time_stamp"],inclusive="both")]
@@ -67,11 +68,13 @@ def profit_attributes(row,config):
     })
     return columns
 
+#Profit based on symbols,industry or symbol and industry ADANIGREEN or RE or ADANIGREEN,RE
 #Stock Profitability for one stock , calculated using high and low
+#Amt Invested > BuyingPrice per stock
 def calc_profit(filtered_stock_data,config):
-    profitable_stocks = filtered_stock_data.groupby("SYMBOLS").agg({"HIGH":"first","LOW":"last","TIMESTAMP":["first","last"]})
+    profitable_stocks = filtered_stock_data.groupby("SYMBOLS").agg({"HIGH":"first","LOW":"last","TIMESTAMP":["first","last"],"INDUSTRY":"first","SYMBOL_INDUSTRY":"first"})
     profitable_stocks = profitable_stocks.reset_index().droplevel(axis=1,level=1)
-    profitable_stocks.columns = ["SYMBOLS","BUYING_PRICE_PER_STOCK","SELLING_PRICE_PER_STOCK","BUYING_DATE","SELLING_DATE"]
+    profitable_stocks.columns = ["SYMBOLS","BUYING_PRICE_PER_STOCK","SELLING_PRICE_PER_STOCK","BUYING_DATE","SELLING_DATE","INDUSTRY","SYMBOL_INDUSTRY"]
     profitable_stocks = profitable_stocks.query("BUYING_PRICE_PER_STOCK < @config['amt_invested']").copy()
     profitable_stocks[["AMT_INVESTED","STOCKS_PURCHASABLE","TOTAL_BUYING_PRICE","TOTAL_SELLING_PRICE","NET_BALANCE","PROFIT/LOSS(₹)",
                        "ACCOUNT_BALANCE"]] = profitable_stocks.apply(profit_attributes,args=(config,),axis=1)

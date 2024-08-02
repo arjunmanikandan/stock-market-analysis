@@ -1,6 +1,7 @@
 {
     "stock_market_data_path":".data/stocks.db",
-    "stock_symbols":["1018GS2026","ASHOKLEY","ZUARI","ZODIAC","ZENTEC"],
+    "nifty_50_path":".data/nifty_50_stocks.csv",
+    "symbols_or_industries":["ADANIGREEN,RE","ADANIENT,CONG","BPCL,OILGAS"],
     "start_time_stamp":"16-MAY-2023",
     "end_time_stamp":"22-JUN-2024",
     "scale":"daily",

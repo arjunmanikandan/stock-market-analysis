@@ -13,6 +13,15 @@ def read_json(json_file):
         file_paths = json.load(file)
         return file_paths
 
+def read_csv(config):
+    df = pd.read_csv(config["nifty_50_path"])
+    return df
+
+def merge_df(stock_data,nifty_50_stocks):
+    filtered_stock_data = pd.merge(stock_data,nifty_50_stocks,on=["SYMBOLS"],how="left")
+    filtered_stock_data["SYMBOL_INDUSTRY"] = filtered_stock_data["SYMBOLS"] + "," + filtered_stock_data["INDUSTRY"]
+    return filtered_stock_data
+
 #To filter out prices which are lower than low
 def filter_inconsistent_data(stock_data):
     stock_data_copy = stock_data.copy()
@@ -32,7 +41,9 @@ def main():
     config = read_json(os.getenv("CONFIG_PATH"))
     stock_data = read_sqlite_db(config)
     stock_data = filter_inconsistent_data(stock_data)
-    filtered_stock_data = filter_data(stock_data,config)
+    nifty_50_stocks = read_csv(config)
+    merged_df = merge_df(stock_data,nifty_50_stocks)
+    filtered_stock_data = filter_data(merged_df,config)
     profitable_stocks = calc_profit(filtered_stock_data,config)
     display_df(profitable_stocks)
 
