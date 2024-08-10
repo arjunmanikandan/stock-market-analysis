@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def plot_labels(filtered_stock_data,config):
     stock_series = filtered_stock_data["SERIES"].unique()
     filtered_stock_data = filtered_stock_data.sort_values(by='TIMESTAMP')
-    plt.title(f"(NSE INDIA) {config['stock_symbols']} {stock_series} BETWEEN {config['start_time_stamp']} AND {config['end_time_stamp']} ({config['scale']})")
+    plt.title(f"(NSE INDIA) {config['symbols_or_industries']} {stock_series} BETWEEN {config['start_time_stamp']} AND {config['end_time_stamp']} ({config['scale']})")
     plt.xlabel("Date")
     plt.ylabel("Price(₹)")
 
@@ -40,4 +40,14 @@ def visualize_data(filtered_stock_data,config):
     plt.gcf().autofmt_xdate(rotation=45)
     plt.grid(True)
     plt.legend(line_handles+bar_handle,line_labels+bar_label,loc="upper left")
+    plt.show()
+
+def moving_average_plot(average_stocks,config):
+    plot_labels(average_stocks,config)
+    plt.plot(average_stocks["TIMESTAMP"],average_stocks["CLOSE"],label="CLOSING_PRICE")
+    plt.plot(average_stocks["TIMESTAMP"],average_stocks["MOVING_AVERAGE_2"],label="MOVING_AVERAGE(2 DAYS)")
+    plt.plot(average_stocks["TIMESTAMP"],average_stocks["MOVING_AVERAGE_14"],label="MOVING_AVERAGE(14 DAYS")
+    plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%d-%b-%Y'))
+    plt.gcf().autofmt_xdate(rotation=45)
+    plt.legend()
     plt.show()

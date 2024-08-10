@@ -1,9 +1,10 @@
 {
     "stock_market_data_path":".data/stocks.db",
     "nifty_50_path":".data/nifty_50_stocks.csv",
-    "symbols_or_industries":["ADANIGREEN,RE","ADANIENT,CONG","BPCL,OILGAS"],
-    "start_time_stamp":"16-MAY-2023",
-    "end_time_stamp":"22-JUN-2024",
+    "symbols_or_industries":["BPCL"],
+    "start_time_stamp":"25-APR-2024",
+    "end_time_stamp":"1-JUL-2024",
     "scale":"daily",
-    "amt_invested":2000
+    "amt_invested":2000,
+    "window_sizes":[2,14]
 }

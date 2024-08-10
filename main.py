@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
-from filter_data import filter_data,calc_profit
-from visualize_data import visualize_data,plot_candle_bars
+from filter_data import filter_data,calc_profit,calc_moving_average,calculate_max_profit_period
+from visualize_data import visualize_data,plot_candle_bars,moving_average_plot
 from comparison import compare_multiple_symbols
 import pandas as pd
 import json,os,sqlite3
@@ -36,6 +36,7 @@ def read_sqlite_db(config):
     stock_data = stock_data.reset_index(drop=True)
     return stock_data
 
+#Profit period can be calculated for nifty 50 stocks only.
 def main():
     load_dotenv()
     config = read_json(os.getenv("CONFIG_PATH"))
@@ -44,8 +45,10 @@ def main():
     nifty_50_stocks = read_csv(config)
     merged_df = merge_df(stock_data,nifty_50_stocks)
     filtered_stock_data = filter_data(merged_df,config)
-    profitable_stocks = calc_profit(filtered_stock_data,config)
+    average_stocks = calc_moving_average(filtered_stock_data,config)
+    profitable_stocks = calculate_max_profit_period(average_stocks)
     display_df(profitable_stocks)
+    moving_average_plot(profitable_stocks,config)
 
 if __name__ == "__main__":
     main()
