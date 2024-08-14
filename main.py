@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from filter_data import filter_data,calc_profit,calc_moving_average,calculate_max_profit_period
+import filter_data as fd
 from visualize_data import visualize_data,plot_candle_bars,moving_average_plot
 from comparison import compare_multiple_symbols
 import pandas as pd
@@ -44,11 +44,12 @@ def main():
     stock_data = filter_inconsistent_data(stock_data)
     nifty_50_stocks = read_csv(config)
     merged_df = merge_df(stock_data,nifty_50_stocks)
-    filtered_stock_data = filter_data(merged_df,config)
-    average_stocks = calc_moving_average(filtered_stock_data,config)
-    profitable_stocks = calculate_max_profit_period(average_stocks)
-    display_df(profitable_stocks)
-    moving_average_plot(profitable_stocks,config)
+    filtered_stock_data = fd.filter_data(merged_df,config)
+    moving_avg_stocks = fd.calc_moving_average(filtered_stock_data,config)
+    tradable_stocks = fd.identify_stock_action(moving_avg_stocks)
+    stocks_balance_sheet = fd.calculate_in_hand_and_in_stock(tradable_stocks,config)
+    stocks_in_time_range = fd.get_stocks_within_timestamp(stocks_balance_sheet,config)
+    display_df(stocks_in_time_range)
 
 if __name__ == "__main__":
     main()

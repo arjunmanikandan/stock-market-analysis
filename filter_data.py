@@ -6,6 +6,11 @@ def get_df_by_symbol(stock_data,config):
     filtered_stock_data = stock_data[stock_data["SYMBOLS"].isin(config['symbols_or_industries']) | 
     stock_data["INDUSTRY"].isin(config['symbols_or_industries']) | stock_data["SYMBOL_INDUSTRY"].isin(config['symbols_or_industries']) ].copy()
     filtered_stock_data['TIMESTAMP'] = pd.to_datetime(stock_data['TIMESTAMP'], format='%d-%b-%Y')
+    timestamp = pd.Timestamp(config["start_time_stamp"])
+    days_to_subtract = pd.Timedelta(days=30)
+    updated_start_timestamp = timestamp - days_to_subtract
+    filtered_stock_data = filtered_stock_data[filtered_stock_data["TIMESTAMP"].between(updated_start_timestamp,
+    config["end_time_stamp"],inclusive="both")]
     filtered_stock_data = filtered_stock_data.sort_values(by=["TIMESTAMP"])
     return filtered_stock_data
 
@@ -100,10 +105,62 @@ def calc_moving_average(filtered_stock_data,config):
     stock_data_symbols = filtered_stock_data.groupby("SYMBOLS").apply(group_by_symbols)
     group_symbols.append(stock_data_symbols)
     grouped_df = pd.concat(group_symbols,axis=1).reset_index(drop=True)
-    grouped_df = grouped_df[grouped_df["TIMESTAMP"].between(config["start_time_stamp"],
-    config["end_time_stamp"],inclusive="both")]
     return grouped_df
 
-def calculate_max_profit_period(average_stocks):
-    average_stocks = average_stocks.query("CLOSE > MOVING_AVERAGE_2 & CLOSE > MOVING_AVERAGE_14 ")
-    return average_stocks
+#amt_invested in config > close_price in moving_avg_stocks
+def identify_buy_sell_hold(row):
+    action=""
+    if row["LAST_CLOSE"] == None:
+        action="PURCHASE"
+    elif row["CLOSE"] > row["LAST_CLOSE"]:
+        action="SELL"
+    else:
+        action="HOLD"
+    columns = pd.Series({
+        "ACTION": action
+    })
+    return columns
+
+#LAST_CLOSE previous row close values 
+def identify_stock_action(moving_avg_stocks):
+    moving_avg_stocks = moving_avg_stocks[["SYMBOLS","INDUSTRY","TIMESTAMP","CLOSE","MOVING_AVERAGE_2","MOVING_AVERAGE_14"]].copy()
+    moving_avg_stocks["LAST_CLOSE"] = moving_avg_stocks["CLOSE"].shift(1)
+    moving_avg_stocks["ACTION"] = moving_avg_stocks.apply(identify_buy_sell_hold,axis=1)
+    return moving_avg_stocks
+
+def calculate_in_hand_and_in_stock(tradable_stocks,config):
+    stock_colns = tradable_stocks.columns.tolist()
+    stock_colns.extend(["IN_HAND_AMOUNT","IN_STOCK_AMOUNT"])
+
+    stocks_list =  tradable_stocks.values.tolist()
+    in_hand_amount,in_stock_amount,action=0,0,""
+
+    for index in range(len(stocks_list)):
+        current_day = stocks_list[index]
+        previous_day = stocks_list[index-1]
+        close_price = current_day[3]
+        previous_close = current_day[6]
+        action = current_day[7]
+        
+        if previous_close == None and action == "PURCHASE":
+            in_hand_amount,in_stock_amount = config["amt_invested"] - close_price,close_price
+            current_day.extend([in_hand_amount,in_stock_amount])
+
+        elif action == "SELL" and previous_day[9] == 0:
+            in_hand_amount,in_stock_amount = previous_day[8] - close_price,close_price
+            current_day.extend([in_hand_amount,in_stock_amount])
+
+        elif action == "SELL":
+            in_hand_amount,in_stock_amount = previous_day[8] + close_price,0
+            current_day.extend([in_hand_amount,in_stock_amount])
+
+        elif action == "HOLD":
+            in_hand_amount,in_stock_amount = previous_day[8],previous_day[9]
+            current_day.extend([in_hand_amount,in_stock_amount])
+
+    return pd.DataFrame(stocks_list,columns=stock_colns)
+
+def get_stocks_within_timestamp(tradable_stocks,config):
+    tradable_stocks = tradable_stocks[tradable_stocks["TIMESTAMP"].between(config["start_time_stamp"],
+    config["end_time_stamp"],inclusive="both")]
+    return tradable_stocks
