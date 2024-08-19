@@ -132,8 +132,25 @@ def identify_stock_action(tradable_stocks):
     tradable_stocks = tradable_stocks[["SYMBOLS","INDUSTRY","TIMESTAMP","CLOSE","LAST_CLOSE","ADVICE"]]
     return tradable_stocks
 
-def update_in_hand_in_stock(current_day,previous_day):
-    current_day[8],current_day[9] = previous_day[8],previous_day[9]
+def update_in_hand_in_stock(current_day, action, in_stock, in_hand):
+    current_day[7], current_day[8], current_day[9] = action, in_stock, in_hand
+    current_day.extend([action])
+
+def calc_action(previous_day, current_day):
+    current_close_price = current_day[3]
+    advice = current_day[7]
+    action, in_hand, in_stock = "HOLD", previous_day[8], previous_day[9]
+
+    if advice == "PURCHASE" and in_hand >= current_close_price:
+        action = "PURCHASE"
+        in_stock = current_close_price
+        in_hand -= in_stock
+
+    elif advice == "SELL" and in_stock > 0:
+        action = "SELL"
+        in_hand += current_close_price
+        in_stock = 0
+    return action,in_hand,in_stock
 
 def calc_stock_balance_sheet(tradable_stocks,config):
     stock_colns = tradable_stocks.columns.tolist()
@@ -143,31 +160,9 @@ def calc_stock_balance_sheet(tradable_stocks,config):
     for index in range(1,len(stocks_list)):
         previous_day = stocks_list[index-1]
         current_day = stocks_list[index]
-        previous_close_price = previous_day[3]
-        current_close_price = current_day[3]
-        advice = current_day[7]
+        action, in_hand, in_stock = calc_action(previous_day, current_day)
+        update_in_hand_in_stock(current_day, action, in_hand, in_stock)
         
-        if  advice == "PURCHASE":
-            action = "PURCHASE" if previous_day[8] >= current_close_price else "HOLD"
-            if action == "PURCHASE":
-                current_day[8],current_day[9] = previous_day[8]-current_close_price,current_close_price
-            else:
-                update_in_hand_in_stock(current_day,previous_day)
-            current_day.extend([action])
-
-        elif advice == "SELL":
-            action = "SELL" if previous_day[9] > 0 else "HOLD"
-            if action == "SELL":
-                current_day[8],current_day[9] = previous_day[8]+current_close_price,0
-            else:
-                update_in_hand_in_stock(current_day,previous_day)
-            current_day.extend([action])
-
-        else:
-            action="HOLD"
-            update_in_hand_in_stock(current_day,previous_day)
-            current_day.extend([action])
-
     return pd.DataFrame(stocks_list,columns=stock_colns)
 
 def get_stocks_within_timestamp(tradable_stocks,config):
