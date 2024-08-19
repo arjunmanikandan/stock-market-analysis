@@ -45,11 +45,12 @@ def main():
     nifty_50_stocks = read_csv(config)
     merged_df = merge_df(stock_data,nifty_50_stocks)
     filtered_stock_data = fd.filter_data(merged_df,config)
-    moving_avg_stocks = fd.calc_moving_average(filtered_stock_data,config)
-    tradable_stocks = fd.identify_stock_action(moving_avg_stocks)
-    stocks_balance_sheet = fd.calculate_in_hand_and_in_stock(tradable_stocks,config)
-    stocks_in_time_range = fd.get_stocks_within_timestamp(stocks_balance_sheet,config)
-    display_df(stocks_in_time_range)
+    moving_avg_stocks = fd.calc_moving_average(filtered_stock_data,config)    
+    stocks_in_time_range = fd.get_stocks_within_timestamp(moving_avg_stocks,config)
+    tradable_stocks = fd.identify_stock_advice(stocks_in_time_range)
+    tradable_stocks = fd.add_initial_values(tradable_stocks,config)
+    stocks_balance_sheet = fd.calc_stock_balance_sheet(tradable_stocks,config)
+    display_df(stocks_balance_sheet)
 
 if __name__ == "__main__":
     main()

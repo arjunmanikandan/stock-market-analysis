@@ -105,62 +105,80 @@ def calc_moving_average(filtered_stock_data,config):
     stock_data_symbols = filtered_stock_data.groupby("SYMBOLS").apply(group_by_symbols)
     group_symbols.append(stock_data_symbols)
     grouped_df = pd.concat(group_symbols,axis=1).reset_index(drop=True)
+    grouped_df["LAST_CLOSE"] = grouped_df["CLOSE"].shift(1)
     return grouped_df
 
 #amt_invested in config > close_price in moving_avg_stocks
 def identify_buy_sell_hold(row):
     action=""
-    if row["LAST_CLOSE"] == None:
+    if row["LAST_CLOSE"] > row["CLOSE"] :
         action="PURCHASE"
     elif row["CLOSE"] > row["LAST_CLOSE"]:
         action="SELL"
     else:
         action="HOLD"
     columns = pd.Series({
-        "ACTION": action
+        "ADVICE": action
     })
     return columns
 
 #LAST_CLOSE previous row close values 
-def identify_stock_action(moving_avg_stocks):
-    moving_avg_stocks = moving_avg_stocks[["SYMBOLS","INDUSTRY","TIMESTAMP","CLOSE","MOVING_AVERAGE_2","MOVING_AVERAGE_14"]].copy()
-    moving_avg_stocks["LAST_CLOSE"] = moving_avg_stocks["CLOSE"].shift(1)
-    moving_avg_stocks["ACTION"] = moving_avg_stocks.apply(identify_buy_sell_hold,axis=1)
+def identify_stock_advice(moving_avg_stocks):
+    moving_avg_stocks = moving_avg_stocks[["SYMBOLS","INDUSTRY","TIMESTAMP","CLOSE","MOVING_AVERAGE_2","MOVING_AVERAGE_14","LAST_CLOSE"]].copy()
+    moving_avg_stocks["ADVICE"] = moving_avg_stocks.apply(identify_buy_sell_hold,axis=1)
     return moving_avg_stocks
 
-def calculate_in_hand_and_in_stock(tradable_stocks,config):
+def identify_stock_action(tradable_stocks):
+    tradable_stocks = tradable_stocks[["SYMBOLS","INDUSTRY","TIMESTAMP","CLOSE","LAST_CLOSE","ADVICE"]]
+    return tradable_stocks
+
+def update_in_hand_in_stock(current_day,previous_day):
+    current_day[8],current_day[9] = previous_day[8],previous_day[9]
+
+def calc_stock_balance_sheet(tradable_stocks,config):
     stock_colns = tradable_stocks.columns.tolist()
-    stock_colns.extend(["IN_HAND_AMOUNT","IN_STOCK_AMOUNT"])
-
+    stock_colns.extend(["ACTION"])
     stocks_list =  tradable_stocks.values.tolist()
-    in_hand_amount,in_stock_amount,action=0,0,""
-
-    for index in range(len(stocks_list)):
-        current_day = stocks_list[index]
+    action=""
+    for index in range(1,len(stocks_list)):
         previous_day = stocks_list[index-1]
-        close_price = current_day[3]
-        previous_close = current_day[6]
-        action = current_day[7]
+        current_day = stocks_list[index]
+        previous_close_price = previous_day[3]
+        current_close_price = current_day[3]
+        advice = current_day[7]
         
-        if previous_close == None and action == "PURCHASE":
-            in_hand_amount,in_stock_amount = config["amt_invested"] - close_price,close_price
-            current_day.extend([in_hand_amount,in_stock_amount])
+        if  advice == "PURCHASE":
+            action = "PURCHASE" if previous_day[8] >= current_close_price else "HOLD"
+            if action == "PURCHASE":
+                current_day[8],current_day[9] = previous_day[8]-current_close_price,current_close_price
+            else:
+                update_in_hand_in_stock(current_day,previous_day)
+            current_day.extend([action])
 
-        elif action == "SELL" and previous_day[9] == 0:
-            in_hand_amount,in_stock_amount = previous_day[8] - close_price,close_price
-            current_day.extend([in_hand_amount,in_stock_amount])
+        elif advice == "SELL":
+            action = "SELL" if previous_day[9] > 0 else "HOLD"
+            if action == "SELL":
+                current_day[8],current_day[9] = previous_day[8]+current_close_price,0
+            else:
+                update_in_hand_in_stock(current_day,previous_day)
+            current_day.extend([action])
 
-        elif action == "SELL":
-            in_hand_amount,in_stock_amount = previous_day[8] + close_price,0
-            current_day.extend([in_hand_amount,in_stock_amount])
-
-        elif action == "HOLD":
-            in_hand_amount,in_stock_amount = previous_day[8],previous_day[9]
-            current_day.extend([in_hand_amount,in_stock_amount])
+        else:
+            action="HOLD"
+            update_in_hand_in_stock(current_day,previous_day)
+            current_day.extend([action])
 
     return pd.DataFrame(stocks_list,columns=stock_colns)
 
 def get_stocks_within_timestamp(tradable_stocks,config):
-    tradable_stocks = tradable_stocks[tradable_stocks["TIMESTAMP"].between(config["start_time_stamp"],
+    timestamp = pd.Timestamp(config["start_time_stamp"])
+    days_to_subtract = pd.Timedelta(days=2)
+    updated_start_timestamp = timestamp - days_to_subtract
+    tradable_stocks = tradable_stocks[tradable_stocks["TIMESTAMP"].between(updated_start_timestamp,
     config["end_time_stamp"],inclusive="both")]
     return tradable_stocks
+
+def add_initial_values(tradable_stocks,config):
+    tradable_stocks.loc[tradable_stocks.index[0],["IN_HAND","IN_STOCK"]] = [config["amt_invested"],0]
+    return tradable_stocks
+
