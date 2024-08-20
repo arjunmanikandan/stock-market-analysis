@@ -133,36 +133,37 @@ def identify_stock_action(tradable_stocks):
     return tradable_stocks
 
 def update_in_hand_in_stock(current_day, action, in_stock, in_hand):
-    current_day[7], current_day[8], current_day[9] = action, in_stock, in_hand
+    current_day[8], current_day[9] = in_stock, in_hand
     current_day.extend([action])
 
 def calc_action(previous_day, current_day):
     current_close_price = current_day[3]
     advice = current_day[7]
     action, in_hand, in_stock = "HOLD", previous_day[8], previous_day[9]
+    qty = 0
 
     if advice == "PURCHASE" and in_hand >= current_close_price:
         action = "PURCHASE"
-        in_stock = current_close_price
+        qty = int(in_hand/current_close_price)
+        in_stock = qty * current_close_price
         in_hand -= in_stock
 
     elif advice == "SELL" and in_stock > 0:
         action = "SELL"
-        in_hand += current_close_price
+        qty = int(in_stock/ previous_day[3])
+        in_hand += current_close_price * qty
         in_stock = 0
     return action,in_hand,in_stock
 
 def calc_stock_balance_sheet(tradable_stocks,config):
     stock_colns = tradable_stocks.columns.tolist()
-    stock_colns.extend(["ACTION"])
     stocks_list =  tradable_stocks.values.tolist()
-    action=""
+    stock_colns.extend(["ACTION"])
     for index in range(1,len(stocks_list)):
         previous_day = stocks_list[index-1]
         current_day = stocks_list[index]
         action, in_hand, in_stock = calc_action(previous_day, current_day)
         update_in_hand_in_stock(current_day, action, in_hand, in_stock)
-        
     return pd.DataFrame(stocks_list,columns=stock_colns)
 
 def get_stocks_within_timestamp(tradable_stocks,config):
