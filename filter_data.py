@@ -145,12 +145,12 @@ def calc_action(previous_day, current_day):
     if advice == "PURCHASE" and in_hand >= current_close_price:
         action = "PURCHASE"
         qty = int(in_hand/current_close_price)
-        in_stock = qty * current_close_price
-        in_hand -= in_stock
+        in_stock = qty
+        in_hand = in_hand - (qty * current_close_price)
 
     elif advice == "SELL" and in_stock > 0:
         action = "SELL"
-        qty = int(in_stock/ previous_day[3])
+        qty = in_stock
         in_hand += current_close_price * qty
         in_stock = 0
     return action,in_hand,in_stock
